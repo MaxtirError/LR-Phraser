@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.7)
+project(LRPhraser)
+
+include_directories(include/)
+
+file(GLOB SOURCE_FILE src/*.cpp)
+file(GLOB HEADER_FILE include/*.h)
+add_executable(${PROJECT_NAME} ${SOURCE_FILE} ${HEADER_FILE})

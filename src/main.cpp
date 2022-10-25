@@ -2,9 +2,13 @@
 CPraser praser;
 int main()
 {
-	praser.input();
-	praser.SLR_Prase();
-	praser.ShowInfo();
+	Regular r("(ba|a)*b*");
+	XFA A = r.cast_to_XFA();
+	A.printinfo();
+	A.cast_to_DFA();
+	A.printinfo();
+	A.Minimize();
+	A.printinfo();
 	return 0;
 }
 /*

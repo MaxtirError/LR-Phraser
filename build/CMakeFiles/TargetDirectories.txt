@@ -1,3 +1,0 @@
-D:/maxtir/LR-Phraser/build/CMakeFiles/LRPhraser.dir
-D:/maxtir/LR-Phraser/build/CMakeFiles/ALL_BUILD.dir
-D:/maxtir/LR-Phraser/build/CMakeFiles/ZERO_CHECK.dir

@@ -7,7 +7,7 @@
 #include<iostream>
 typedef std::pair<char, std::string> EXPR;
 class CGrammer
-	//注意，0作为空使用，输入的时候必须拓扑有序
+	//注意，0作为空使用
 {
 private:
 	std::vector<EXPR> Rules;
@@ -18,14 +18,21 @@ private:
 public:
 	CGrammer() { };
 	~CGrammer() {};
-	bool static Merge(std::set<char>& x, std::set<char>& y, int without = -1)
+	CGrammer(std::vector<std::string> exprs) {
+		for (auto expr : exprs) {
+			assert(expr[1] == ' ');
+			add_rules(expr[0], expr.substr(2, -1));
+		}
+	}
+	std::pair<bool, bool> static Merge(std::set<char>& x, std::set<char>& y, int without = -1)
 	{
 		bool ishave = false;
+		bool update = false;
 		for (auto w : y)
 			if (w != without)
-				x.insert(w);
+				update |= x.insert(w).second;
 			else ishave = true;
-		return ishave;
+		return std::make_pair(ishave, update);
 	}
 	bool static in_Vn(char x) {
 		return 'A' <= x && x <= 'Z';
@@ -50,7 +57,7 @@ public:
 			add_rules(x[0], s);
 		}
 	}
-	std::vector<std::string> &getExprs(char u) {
+	std::vector<std::string>& getExprs(char u) {
 		return exprs[u];
 	}
 	std::set<char>& getVns() {
@@ -59,13 +66,19 @@ public:
 	std::set<char>& getVts() {
 		return Vt;
 	}
+	std::set<char>& getFol(char u) {
+		return Fol[u];
+	}
+	std::set<char>& getFir(char u) {
+		return Fir[u];
+	}
 	std::set<char> Get_First(std::string s)
 	{
 		std::set<char>fir; int i = 0;
 		for (; i < s.size(); ++i)
 		{
 			if (in_Vn(s[i])) {
-				bool can_empty = Merge(fir, Fir[s[i]], '0');
+				bool can_empty = Merge(fir, Fir[s[i]], '0').first;
 				if (!can_empty)
 					break;
 				else fir.insert('0');
@@ -79,25 +92,40 @@ public:
 			fir.insert('0');
 		return fir;
 	}
-	void Get_Follow(char x, std::string s)
+	bool Get_Follow(char x, std::string s)
 	{
+		bool update = false;
 		if (x == 'S') Fol[x].insert('$');
 		for (int i = 0; i < s.size(); ++i)
 		{
 			if (in_Vn(s[i]))
 			{
-				bool can_empty = Merge(Fol[s[i]], Get_First(s.substr(i + 1, -1)), '0');
+				auto r = Merge(Fol[s[i]], Get_First(s.substr(i + 1, -1)), '0');
+				bool can_empty = r.first;
+				update |= r.second;
 				if (can_empty)
-					Merge(Fol[s[i]], Fol[x]);
+					update |= Merge(Fol[s[i]], Fol[x]).second;
 			}
 		}
+		return update;
 	}
 	void initialize()
 	{
-		for (int x = Rules.size() - 1; x >= 0; --x)
-			Merge(Fir[Rules[x].first], Get_First(Rules[x].second));
-		for (int x = 0; x < Rules.size(); ++x)
-			Get_Follow(Rules[x].first, Rules[x].second);
+		bool update;
+		for (;;) {
+			update = false;
+			for (int x = Rules.size() - 1; x >= 0; --x)
+				update |= Merge(Fir[Rules[x].first], Get_First(Rules[x].second)).second;
+			if (!update)
+				break;
+		}
+		for (;;) {
+			update = false;
+			for (int x = 0; x < Rules.size(); ++x)
+				update |= Get_Follow(Rules[x].first, Rules[x].second);
+			if (!update)
+				break;
+		}
 	}
 	void showinfo()
 	{

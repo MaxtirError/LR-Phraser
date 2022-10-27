@@ -40,7 +40,101 @@ ItemSet ItemSet::GoTo(char x) const
 	return nSet;
 }
 
-void CPraser::SLR_Prase()
+bool LL1::islegal()
+{
+	auto OrEmpty = [](std::set<char>& s1, std::set<char> &s2) {
+		for (auto x : s2)
+			if (s1.count(x))
+				return false;
+		return true;
+	};
+	for (char A : grammer.getVns())
+	{
+		auto exprs = grammer.getExprs(A);
+		auto& A_map = Move[A];
+		for (int i = 0; i < exprs.size(); ++i) 
+		{
+			auto Firi = grammer.Get_First(exprs[i]);
+			bool isempty = false;
+			for (auto x : Firi)
+				if (x != '0') {
+					if (A_map.count(x))
+						return false;
+					else A_map[x] = exprs[i];
+				}
+				else isempty = true;
+			if (isempty) {
+				for (auto x : grammer.getFol(A))
+				{
+					if (A_map.count(x))
+						return false;
+					else A_map[x] = exprs[i];
+				}
+			}
+		}
+	}
+	return true;
+}
+
+void LL1::Prase() 
+{
+	if (!islegal()) {
+		puts("this grammer is not in LL(1)");
+		return;
+	}
+	else {
+		puts("successfully prase, Moves form below");
+		for (char A : grammer.getVns())
+		{
+			for (auto x : Move[A]) {
+				printf("Move[%c, %c]=", A, x.first);
+				std::cout << x.second << std::endl;
+			}
+		}
+	}
+}
+
+void LL1::type(char A) {
+	if (iserror) return;
+	if (!Move[A].count(*lookahead))
+		return;
+	auto exprs = Move[A][*lookahead];
+	for (int i = 0; i < exprs.size(); ++i)
+		if (!CGrammer::in_Vn(exprs[i])) {
+			match(exprs[i]);
+		}
+		else type(exprs[i]);
+
+}
+void LL1::match(char a) {
+	if (iserror) return;
+	if (a == '0')
+		return;
+	if (*lookahead != a)
+		error();
+	else lookahead++;
+}
+
+void LL1::error() {
+	iserror = true;
+}
+
+bool LL1::Analyze(std::string _buffer) {
+	if (isrecursion == LL1RECURSION) {
+		buffer = new char[_buffer.size() + 1];
+		for (int i = 0; i < _buffer.size(); ++i)
+			buffer[i] = _buffer[i];
+		buffer[_buffer.size()] = '$';
+		lookahead = buffer;
+		iserror = false;
+		type('S');
+		if (iserror)
+			return false;
+		else return *lookahead == '$';
+	}
+}
+
+void SLR::Prase()
 {
 	ItemSet I(&grammer, 0);
 	I.add_expr('Z', ".S");
@@ -78,7 +172,7 @@ void CPraser::SLR_Prase()
 	} while (!q.empty());
 }
 
-void CPraser::ShowInfo()
+void SLR::ShowInfo()
 {
 	puts("output praser info----------");
 	printf("items size:%d\n", items.size());

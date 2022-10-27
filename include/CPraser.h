@@ -1,6 +1,8 @@
 #pragma once
 #include"CGrammer.h"
 #include<queue>
+#define LL1RECURSION 1
+#define LL1UNRECURSION 0
 class ItemSet
 {
 private:
@@ -40,19 +42,54 @@ public:
 }; 
 class CPraser
 {
-private:
+protected:
 	CGrammer grammer;
-	std::vector<ItemSet> items;
-	std::map < ItemSet, int> items_id;
 public:
 	CPraser() { };
 	~CPraser() { };
+	CPraser(std::vector<std::string>exprs) {
+		grammer = CGrammer(exprs);
+		grammer.initialize();
+		grammer.showinfo();
+	}
 	void input() {
 		grammer.input();
 		grammer.initialize();
 		grammer.showinfo();
 	}
-	void SLR_Prase();
+	virtual bool Analyze(std::string) { return 0; };
+	virtual void Prase() = 0;
+	virtual void ShowInfo() {};
+};
+
+class LL1 : public CPraser
+{
+private:
+	bool isrecursion;
+	bool iserror;
+	void type(char ch);
+	void match(char ch);
+	void error();
+	char *lookahead;
+	char *buffer;
+	std::map<char, std::string>Move[256];
+public:
+	LL1() {};
+	LL1(std::vector<std::string>exprs, bool type) : CPraser(exprs) { isrecursion = type; };
+	bool islegal();
+	void Prase();
+	bool Analyze(std::string);
+};
+
+class SLR : public CPraser
+{
+public:
+	SLR() {};
+	SLR(std::vector<std::string>exprs) : CPraser(exprs) {};
+	void Prase();
 	void ShowInfo();
+private:
+	std::vector<ItemSet> items;
+	std::map < ItemSet, int> items_id;
 };
 

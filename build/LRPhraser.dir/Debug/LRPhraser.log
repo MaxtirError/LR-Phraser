@@ -1,0 +1,3 @@
+﻿  main.cpp
+D:\maxtir\LR-Phraser\include\CGrammer.h(117,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  LRPhraser.vcxproj -> D:\maxtir\LR-Phraser\build\Debug\LRPhraser.exe
